@@ -1,0 +1,239 @@
+---
+title: 'MSc Data Science: R for Big Data'
+author: 'Pr. Charles Bouveyron (Email: charles.bouveyron@univ-cotedazur.fr / Twitter: @cbouveyron)'
+date: Last updated on `r Sys.Date()`
+output:
+    html_document:
+        toc: true
+        toc_float:
+          collapsed: false
+          smooth_scroll: true
+        toc_depth: 2
+        number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preamble
+
+## Who I am?
+
+A professor/researcher using R for more than 10 years and who developed more than 10 R packages.
+
+## Organization of the course
+
+The course will be organized as follows:
+
+* lectures,
+* pratical sessions,
+* applied projects.
+
+# Introduction
+
+## The softwares for Data Science
+
+R is one of the most used softwares for Data Science:
+
+* <https://cran.r-project.org>
+* <http://www.rstudio.com>  
+
+But there are of course good alternatives:
+
+* Python (the SciKitLearn initiative is very good and clearly is missing in R!)
+* not free softwares: SAS, Matlab, ...
+
+
+## Why R for Data Science?
+
+R is very good for DS because of:
+
+* connected to the researchers / newest technologies
+* easy to pulish new codes
+* a community behind the software
+
+## Working with R - Lesson 101
+
+To start a project in R: 
+
+* you'll need a Rstudio session
+* a blank script > open a new R script to do some serious project
+* use only the console for simple calulations
+* the plot panel allows to see graphical results
+
+Two main commands:
+
+* `run` is devoted to execute line by line the code
+* `source` will execute the whole script at once
+
+# R basics
+
+> Note: the Base R Cheat Sheet can be downloaded on the Rstudio website: <https://www.rstudio.com/resources/cheatsheets/>
+
+## R as simple calculus tool
+
+R can be used to make simple (and less simple) caclulations:
+
+```{r}
+2+2
+exp(-2)
+```
+
+All calculations are made using vectors (or matrices later) and the `[1]` is a trace of this vector nature
+
+
+```{r}
+rnorm(15)
+```
+
+This command produces a vector of 15 values and the number within brackets at the beginning of the lines indicate the rank of the values in the vector.
+
+
+```{r}
+x = 2
+```
+
+It is possible to store the results in variables. The `=` operator assigns the value to the variable. When all is ok, R does not display anything!
+
+It is also possible to use the arrow operator `->` which usually works in the same way as the `=` operator
+
+```{r}
+a = c(1,2,3,4,5)
+```
+
+The `c()` function allows to create vectors. Warning: all vectors must be of the same type (numeric, characters, booleans)!
+
+This is a vector of booleans: 
+
+```{r}
+a = c(TRUE,FALSE,TRUE,FALSE,FALSE)
+```
+
+All operators are working on vectors elements by elements:
+```{r}
+a = c(1,2,3,4,5)
+b = c(2,1,4,6,1)
+a / b
+```
+
+The resulting vector is of the same size of the two input vectors. 
+
+> Note: the operator for matrix multiplication is %*%
+
+```{r}
+c = a / b
+c^2
+```
+
+Here, the expentation is again element by element.
+
+It is usually very easy to translate Maths into code:
+```{r}
+xbar = sum(a) / length(a)
+xbar
+```
+
+## How to find a function in the documentation
+
+The R documentation is very well structured and it is easy to find information from it. A search in the documentation is usually in two steps:
+
+1. Search with a key word within the documentation:
+```{r}
+??student
+```
+2. Access the documentation of the wanted function:
+```{r}
+?t.test
+```
+The documentation is always organised in the same manner: 
+
+* `Description`: a short description in English of the method implemented in the function
+* `Usage`: the way the function should be used, with all input parameters and their default values
+* `Arguments`: a detailed explenation of the input parameters
+* `Values`: a detailed explenation of the output fields
+
+There are plenty of already coded functions:
+
+```{r}
+mean(a)
+sd(a)
+range(a)
+max(a)
+```
+
+> Note: missing values are represented in R with the `NA` type. It is possible to locate missing values using the `is.na()` function.
+
+## Basics of ploting
+
+In R, the generic plot function allows to output a graphic from some object:
+
+```{r}
+a = c(1,2,3,4,5)
+b = c(2,1,4,6,1)
+plot(b,a)
+plot(b,a,pch=19,col='lightblue',cex=2,type='b')
+title(main='My wonderful title')
+```
+
+> Note: a plot is build like a Lego, meaning it is not possible to mify something whitout restarting from zero!
+
+## Loading and saving data
+
+Two options:
+
+1. Data in CSV file, or similar (mydata.csv)
+2. Data in Rdata format (mydata.Rdata)
+
+How to proceed for CSV:
+```{r, eval=FALSE}
+# Load the data into X
+X = read.csv('path/toward/thefile.csv')
+
+# Save some data into a file
+write.csv(X,file='path/toward/thefile2.csv')
+```
+
+How to proceed for Rdata:
+```{r, eval=FALSE}
+# Load the data
+load('path/toward/thefile.Rdata')
+
+# Save some data into a file
+save(X,Y,a,b,out,file='path/toward/thefile2.Rdata')
+```
+
+> Note: the `rm(list=ls())` allows to clean the working space.
+
+## Exercice
+
+Write a script allowing to load a vector file and "remove" the missing values.
+
+```{r, eval=FALSE}
+# Load data
+x = read.csv("path/to/myfile.csv")
+x = as.vector(x$x) # to ensure that x is a vector
+
+# Count the number of NAs
+prop = sum(is.na(x)) / lenght(x)
+
+# If too many NAs, remove them
+if (prop > 0.05){
+  x = x[-which(is.na(x))]
+}
+
+# Otherwise, replace NAs with the mean
+if (prop <= 0.05){
+  m = mean(x,na.rm = TRUE)
+  x[which(is.na(x))] = m
+}
+```
+
+
+# Advanced R
+
+# Programming with R
+
+# Reporting with R
+
+

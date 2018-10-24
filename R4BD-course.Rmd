@@ -1,7 +1,8 @@
 ---
 title: 'MSc Data Science: R for Big Data'
-author: 'Pr. Charles Bouveyron (Email: charles.bouveyron@univ-cotedazur.fr / Twitter: @cbouveyron)'
-date: Last updated on `r Sys.Date()`
+author: 'Pr. Charles Bouveyron (Email: charles.bouveyron@univ-cotedazur.fr / Twitter:
+  @cbouveyron)'
+date: "Last updated on `r Sys.Date()`"
 output:
     html_document:
         toc: true
@@ -231,6 +232,381 @@ if (prop <= 0.05){
 
 
 # Advanced R
+
+## Objects and expressions
+
+First, it important to understand that R has two kinds of "objects":
+
+* expresssions: operators and functions,
+* objects: vectors, matrices, lists, dataframes, ...
+
+To differentiate between functions and objects, functions have to be called every time with brackets `()`!
+
+```{r}
+plot = c(1,1,2,3,4,5)
+plot(plot)
+```
+
+About the functions, the arguments (imput parameters) can be provided in any order:
+
+```{r}
+x = c(1,2,3,4,5,6)
+y = sin(x)
+plot(x,y,type='b')
+```
+
+or 
+```{r}
+plot(y=y,x=x,col='red',type='b')
+```
+if you declare clearly which argument you are providing!
+
+## Vectors
+
+Vectors can be created with the `c()` function:
+
+```{r}
+x = c(1,2,3,4,5)
+x = c(TRUE,FALSE,TRUE)
+x = c('tyty',"tutu",'yuyu')
+```
+
+or some other ways:
+
+```{r}
+x = seq(1,10)
+x
+```
+
+```{r}
+x = seq(1,11,by = 1.5)
+x
+```
+
+```{r}
+x = seq(1,10,length.out = 100)
+x
+```
+
+This would be very useful to get a nice plot of the `sinus` function.
+
+```{r}
+x = seq(-pi,pi,length.out = 100)
+plot(x,sin(x),type='l')
+```
+
+You can also use the `:` operator which equivalent to the default `seq()` function.
+
+```{r}
+x = seq(1:10)
+x
+
+y = 1:10
+y
+```
+
+```{r}
+w = 0.5:10
+w
+```
+
+And the last way of creating vectors is to use the `rep` function.
+
+```{r}
+x = rep(0,10)
+x
+```
+
+This is useful in particular to initialize a vector which will be used in a loop or a function.
+
+> Tip: always initialize your vectors with a "strange" value for the task (for instance NA's)
+
+```{r}
+m = rep(NA,10)
+for (i in 1:10) m[i] = mean(rnorm(10))
+m
+```
+
+
+## Matrices
+
+**Matrices** can be created with the `matrix` function:
+
+```{r}
+A = matrix(c(1,2,3,4,5,6),nrow = 2,byrow = TRUE)
+A
+```
+
+Another option would be to use the `cbind` and `rdind` functions:
+
+```{r}
+A = cbind(c(1,2),c(2,3),c(4,5))
+A
+```
+
+
+
+```{r}
+A = rbind(c(1,2,3),c(4,5,6))
+A
+```
+
+To access vectors and matrices, we cannot use the barckets ()! Instead, we use the square brackets `[...]`
+
+```{r}
+x = seq(1,10,length.out = 25)
+# Access the 5th element of x
+x[5]
+# Access all elements between the 5th and the 15th elements
+x[5:15]
+# Access all elements except those between 5 and 15
+y = x[-(5:15)]
+y
+length(y)
+```
+
+With the square brackets, you can also modify the values of a vector:
+
+```{r}
+x[5] = NA
+x
+```
+
+It is also possible to do some conditional access:
+```{r}
+x[is.na(x)] = -1
+x
+```
+
+```{r}
+x[x < 4] = 0
+x
+```
+
+```{r}
+x[x < 4 | x > 8] = NA
+x
+```
+
+> Note: the `|` operator denotes a OR. The AND is denoted by the `&` operator.
+
+For matrices, you will have to provide position information about rows and columns:
+
+```{r}
+A = diag(1,5)
+A
+```
+
+```{r}
+A[1:2,4:5]
+```
+
+If you would like to access all rows (resp. columns) of a matrix, you can use the "nothing" operator:
+
+```{r}
+A[,4:5]
+```
+
+In some cases, you perhaps would like to access some specific locations:
+```{r}
+A[c(1,3),c(2,5)]
+```
+
+## Lists
+
+**Lists** are objects able to store information of different types. All functions return lists, so it is important to be able to manipulate them!
+
+```{r}
+mylist = list(name='Charles',age=28,married=TRUE)
+mylist
+```
+
+```{r}
+mylist$name = 'Tutu'
+mylist
+```
+
+```{r}
+mylist$Nb_of_cats = 4
+mylist
+```
+
+```{r}
+out = t.test(1:10, y = c(7:20))
+out
+```
+
+```{r}
+print.default(out)
+```
+
+
+```{r}
+out$statistic
+sqrt(abs(out$statistic))
+```
+
+```{r}
+out$p.value
+```
+
+## Data frames
+
+The last object is the `data.frame` and it is devoted to store data sets. In a `data.frame`, rows are for individuals and columns are for variables.
+
+```{r}
+# We create a data.frame with 28 individuals and 3 variables (2 numeric and 1 categorical)
+X = data.frame(x = seq(1,10,length.out = 28),
+               y = seq(-3,3,length.out = 28),
+               sex = c(rep('M',10),rep('F',18)))
+X
+```
+
+Data.frame can be used as matrices or lists:
+```{r}
+X[5:10,]
+```
+
+```{r}
+X$sex
+```
+
+```{r}
+X[,3]
+```
+
+```{r}
+summary(X)
+```
+
+Some useful functions to get information about objects:
+```{r}
+#Length of a vector
+length(x)
+
+# Length of a list (nb of fields)
+length(mylist)
+```
+
+```{r}
+# For matrices and data.frames
+nrow(X)
+
+ncol(X)
+```
+
+```{r}
+# For data.frames
+colnames(X)
+rownames(X)
+```
+
+It is also possible to modify the names of variables and individuals
+
+```{r}
+colnames(X) = c('Var 1','Var 2','Var 3')
+X
+```
+
+```{r}
+rownames(X) = paste('Individual',1:28)
+X
+```
+
+```{r}
+X["Individual 26",]
+```
+
+## Some exercises
+
+> Exercise: Create two vectors of different dimensions and insert the second one in the first one between the 2nd and 3rd elements.
+
+```{r}
+a = c(1,2,3,4,5)
+b = runif(10)
+c = c(a[1:2],b,a[-(1:2)])
+c
+```
+
+> Exercise: Draw 100 numbers from a Uniform distribution on [0,1] and count how many values are larger than 0.5
+
+```{r}
+x = runif(100,min = 0,max = 1)
+sum(x>=0.5)
+length(x[x>=0.5])
+```
+
+> Exercise: Draw 100 couples $(x,y)$ randomly in the square $[0,1]^2$ (use a data.frame to store the data). Count how many couples are within the square $[0.5,1]^2$. Plot the couples and display with a red point the mean of all points.
+
+```{r}
+X = data.frame(x = runif(100), y = runif(100))
+sum(X$x >= 0.5 & X$y >= 0.5)
+plot(X,col='lightblue',pch=19)
+mean = colMeans(X)
+points(mean[1],mean[2],col='red',pch=19,cex=2)
+```
+
+
+> Exercise: It is Spring! We consider a field of flower bulbes. We have 100 bulbes in a field of 1m x 1m. We know that the probability that a bulbe blooms is 0.85 (use a data.frame to store the data). Simulate the blossoming of the bulbes!
+
+```{r}
+X = data.frame(x = runif(100), y = runif(100),
+               b = rbinom(100,size = 1,prob = 0.85))
+X
+plot(X[,1:2],pch=19,col=X$b+1)
+nb = sum(X$b == 1)
+title(main = paste(nb,"bulbes become flowers!"))
+legend("bottomleft",legend = c('Failed','Bloomed'),col=c(1,2),pch=19)
+```
+
+# The graphical system
+
+## Basic plots and legends
+
+The graphical system is very complex and works in Lego fashion, i.e. it is not possible to remove something on plot wihout clearing everything!
+
+Of course, it is possible to add on a figure texts, legend, title, etc ... and to save the figure in an image format (png, jpg, pdf, eps, ...)
+
+The window of the plot is automatically set up according to the data scale.
+```{r}
+x = runif(100)
+y = rnorm(100)
+plot(x,y,pch=19)
+```
+
+It is possible to resize the window by using the `xlim` and `ylim` arguments.
+```{r}
+plot(x,y,pch=19,xlim=c(-1,2),ylim=c(-3,4))
+points(1.5,0,col='red')
+points(0,3,col='blue')
+```
+
+```{r}
+plot(x[x >= 0.5],y[x >= 0.5],pch=19,
+     xlab='x',ylab='y',main='My title')
+title(sub='My subtitle')
+legend("bottomright",legend = 'my points',col=1,pch=19)
+text(x,y,1:length(x >= 0.5),pos = 1)
+```
+
+To draw some line (for instance for linear regression), we use the `abline` function:
+
+```{r}
+plot(x,x+rnorm(100,0,0.2),pch=19,ylab='y')
+abline(a=0,b=1,lty=2,lwd=2,col='red')
+abline(v = 0.5,lty=3,col='blue')
+```
+
+It is also possible to add texts in the margin:
+
+```{r}
+plot(x,x+rnorm(100,0,0.2),pch=19,ylab='y')
+abline(a=0,b=1,lty=2,lwd=2,col='red')
+abline(v = 0.5,lty=3,col='blue')
+mtext("A nice linear model",side = 4)
+```
+
+## The ggplot package
 
 # Programming with R
 

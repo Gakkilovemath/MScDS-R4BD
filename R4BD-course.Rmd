@@ -7,7 +7,7 @@ output:
     html_document:
         toc: true
         toc_float:
-          collapsed: false
+          collapsed: true
           smooth_scroll: true
         toc_depth: 2
         number_sections: true
@@ -606,10 +606,351 @@ abline(v = 0.5,lty=3,col='blue')
 mtext("A nice linear model",side = 4)
 ```
 
+## Basic statistics with R plots
+
+Histograms are a way to look at the distribution of the data. 
+
+```{r}
+x = rnorm(200,mean = 2,sd = 1.5)
+hist(x,col='lavender')
+```
+
+Be careful with histograms: it is not so easy to draw a great histogram! In addition, keep in mind that it is possible to manipulate a histogram to pass a specific message!
+
+For example, this is the default result for a uniformly distributed variable:
+
+```{r}
+x = runif(100,0,1)
+hist(x)
+```
+
+And this are other possible histograms for the same data:
+
+```{r}
+par(mfrow=c(1,2))
+hist(x,breaks=2)
+hist(x,breaks=100)
+```
+
+It is possible to combine or replace the histogram with a plot o the estimated density function. The function to estimate the density function is `density`:
+
+```{r}
+x = c(rnorm(100,2,1),rgamma(50,shape = 1))
+hist(x,freq = FALSE)
+f = density(x)
+lines(f,lwd=2,col='red',lty=2)
+```
+
+It is possible to compare the empirical distribution of the data with the theorical function of some specific distribution:
+
+```{r}
+x = c(rnorm(100,2,1),rgamma(50,shape = 1))
+qqnorm(x)
+```
+
+```{r}
+x = c(rnorm(100,2,1),rgamma(50,shape = 1))
+qqplot(x,y = rgamma(1000,shape=1))
+```
+
+Perhaps, the best way to look at the distribution of some data is to do a boxplot. Boxplots are great becaus the recipie is unique!
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(rnorm(100),title='Normal')
+boxplot(runif(100),title='Uniform')
+```
+
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(rnorm(100),title='Normal')
+boxplot(rgamma(100,shape=1),title='Gamma')
+```
+
+But, it is a very simple plot and it is not easy to look at complex distributions:
+
+```{r}
+x = c(rnorm(100,2,1),rgamma(50,shape = 1))
+boxplot(x,title='Mixture dist.')
+```
+
+Interestingly, it is possible to display multavariate data with boxplots:
+
+```{r}
+x = iris[,-5]
+boxplot(x)
+```
+
+This is very helpful but limited to data on the same unit! 
+
+To represent multivariate data, we also have the `pairplot` funtion.
+
+```{r}
+x = iris[,-5]
+pairs(x)
+```
+
+> Remark: Keep in mind that some information can remain hidden in high-dimensional spaces!
+
+It is possible to add categorical variables on a plot by changing the colors or the forms of the points.
+
+```{r}
+x = iris[,-5]
+y = iris$Species
+pairs(x,col=as.numeric(y),pch=as.numeric(y))
+```
+
+Finally, for categorical variables, you can draw pie plots:
+
+```{r}
+y = iris$Species
+pie(summary(y))
+```
+
 ## The ggplot package
 
-# Programming with R
+We are going to use an extra package, `ggplot`, that can be download on the CRAN repository.
+
+```{r eval=FALSE, include=FALSE}
+#install.packages('ggplot2')
+library(ggplot2)
+```
+
+We are going to use the `mpg` data set to illustrate the use of the package:
+
+```{r}
+library(ggplot2)
+?mpg
+mpg
+```
+
+
+The ggplot package has a very specific wayt of working:
+```{r}
+ggplot(data = mpg) + geom_histogram(aes(x = hwy))
+```
+
+> Notice that `geom_histogram` always use 30 bins for making the plot! It is necessary to provide a better value if you want!
+
+```{r}
+ggplot(data = mpg) + geom_histogram(aes(x = hwy), bins=50, fill = 'pink')
+```
+
+```{r}
+ggplot(data = mpg) + geom_histogram(aes(x = hwy, y = ..density..), bins=50, fill = 'pink') + geom_density(aes(x = hwy),col = 'green')
+```
+
+It is also possible to draw boxplots:
+
+```{r}
+boxplot(mpg$hwy)
+ggplot(data = mpg) + geom_boxplot(aes(x = '',y = hwy), fill = 'lightblue')
+```
+
+Let's compare the distribution of the `hwy` variable with one normal distribution with the quantile-quantile plot (qqplot for friends!):
+
+```{r}
+ggplot(data = mpg) +
+  geom_qq(aes(sample = hwy)) +
+  geom_qq_line(aes(sample = hwy))
+```
+
+```{r}
+ggplot(data = mpg) +
+  geom_qq(aes(sample = hwy),distribution = stats::qgamma,dparams = (shape=1)) + 
+    geom_qq_line(aes(sample = hwy),distribution = stats::qgamma,dparams = (shape=1))
+```
+
+For categorical data, we also have some barplots:
+
+```{r}
+ggplot(data = mpg) + geom_bar(aes(x = trans))
+```
+
+It is also possible to have some original graphics that are not easy to obtain with the usual plot function, like this one:
+
+```{r}
+ggplot(data = mpg) + geom_bar(aes(x = "", fill = factor(trans)))
+```
+
+To draw a barplot:
+
+```{r}
+ggplot(data = mpg) + geom_bar(aes(x = "", fill = factor(trans))) + coord_polar(theta = "y")
+```
+
+For two-dimensional data, we have also specific plots:
+
+```{r}
+ggplot(data = mpg) + geom_point(aes(x = displ,y = hwy))
+```
+
+```{r}
+ggplot(data = mpg) + geom_point(aes(x = displ,y = hwy,col = class, shape = factor(year)))
+```
+
+It is also possible to display the data conditionnaly on one categorical variable (here the `class` variable):
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, col = class)) + facet_wrap( ~ class, nrow = 3)
+```
+
+It is even possible to make the plots conditionnaly on two categorical variables:
+
+```{r}
+ggplot(data = mpg) + geom_point(aes(x = displ, y = hwy)) + facet_grid(drv ~ cyl)
+```
+
+Let's try to do the same without ggplot:
+
+```{r}
+par(mfrow=c(3,4))
+for (m in unique(mpg$drv))
+  for (v in unique(mpg$cyl)){
+    sel = which(mpg$drv == m & mpg$cyl == v)
+    if (length(sel)>0) plot(mpg$displ[sel],mpg$hwy[sel],pch=19)
+    else plot(0,0,type='n')
+  }
+```
+
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+```
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy),method = 'lm')
+```
+
+If one wuld like to interpret the coefficients of the `lm` model, it is necessary to use directrly the lm function:
+
+```{r}
+out = lm(mpg$hwy ~ 1 + mpg$displ)
+out
+```
+
+```{r}
+plot(out)
+```
+
+```{r}
+plot( mpg$displ, mpg$hwy, type='p')
+abline(out, col='red')
+```
+
+It is worth noticing that the ggplot graphic is more meaningful regarding the distribution of the residuals.
+
+When working with multivariate categorical data, it still possible to have nice plots!
+
+```{r}
+table(mpg$cyl,mpg$drv)
+```
+
+```{r}
+ggplot(data = mpg) + 
+  geom_bar(aes(x = factor(cyl), fill = factor(drv)))
+```
+
+```{r}
+ggplot(data = mpg) + 
+  geom_bar(aes(x = factor(drv), fill = factor(cyl)))
+```
+
+There are variants of this plot, that can be obtained using the `position` option.
+
+
+```{r}
+ggplot(data = mpg) + geom_bar(aes(x = factor(cyl), fill = factor(drv)), position = "dodge")
+
+ggplot(data = mpg) + geom_bar(aes(x = factor(cyl), fill = factor(drv)), position = "fill")
+
+```
+
+```{r}
+ggplot(data = mpg) + 
+  geom_bar(aes(x = "", fill = factor(cyl)), position = "fill") + 
+  coord_polar(theta = "y") +
+  facet_wrap(~ factor(drv))
+```
+
+> Remark: in the two last plots, information about the counts are missing and this could be dangerous when intyerpreting... 
+
+```{r}
+tapply(mpg$displ, mpg$cyl, mean)
+
+ggplot(data = mpg) + geom_boxplot(aes(x = factor(cyl), y = displ))
+
+ggplot(data = mpg) + geom_histogram(aes(x = displ)) + facet_wrap(~ factor(cyl), ncol = 1)
+
+ggplot(data = mpg) + geom_density(aes(x = displ, col = factor(cyl)))
+```
+
+
+> Exercise: Use the `starwars data set in the `dplyr` package to:
+
+  - list the different human characters,
+  - list the different worlds,
+  - compute the average weight and height of the different character types,
+  - display on a plot the number of characters of each type in a deacresing order,
+  - visualize the relationship between the height and weight of the different characters.
+
+```{r}
+library(dplyr)
+?starwars
+starwars$name[starwars$species == 'Human']
+```
+```{r}
+unique(starwars$homeworld)
+#levels(as.factor(starwars$homeworld))
+```
+
+```{r}
+weight = tapply(starwars$mass, starwars$species, mean)
+height = tapply(starwars$height, starwars$species, mean)
+Species = data.frame(weight,height)
+Species
+ggplot(data = Species) + geom_point(aes(x = weight,y = height)) +
+  geom_text(aes(x = weight,y = height,label = rownames(Species)),nudge_y = 10)
+```
+
+```{r}
+Species$count = table(starwars$species)
+Species = Species[order(Species$count,decreasing = TRUE),]
+#ggplot(data = Species) + geom_bar(aes(x = count))
+barplot(Species$count)
+```
+
+```{r}
+ggplot(data = starwars) +
+  geom_point(aes(x = mass,y = height)) +
+  geom_smooth(aes(x = mass,y = height),method = 'lm')
+```
+
+> Remark: we can see here that the linear model is very sensitive to ouliers!  
+
 
 # Reporting with R
 
+Several very useful tools for reporting and communication are available within the R ecosystem. 
 
+## Rmarkdown
+
+Rmarkdown is a comprehensive way of creating reports which involve R (or other languages). A synthetic presentation of the Rmarkdown system is available here: <https://rmarkdown.rstudio.com/lesson-1.html>. For advanced details on the language, please refer to <https://bookdown.org/yihui/rmarkdown/>.
+
+## Shiny
+
+# Programming with R
+
+## Basics of R programming
+
+## Advanced tools
+
+## Building R packages
+
+
+# Handling massive data sets with `dplyr`

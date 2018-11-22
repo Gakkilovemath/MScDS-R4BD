@@ -235,7 +235,6 @@ my.data = rnorm(1500,2,1)
 package.skeleton("my.hist")
 ```
 
-
 After having completed all documentation files, it is possible to build the package. To do that, you have to open a bash terminal and type in the right directory: 
 
 ```{bash, eval=FALSE}
@@ -319,11 +318,214 @@ dim(flights2)
 
 ## The `summarise` function
 
+Summarise is a function that allows to obtain summary information about the dataset:
+
+```{r}
+my_summary = summarise(flights,
+            dep_delay_m=mean(dep_delay,na.rm = TRUE),
+            arr_delay_m = mean(arr_delay,na.rm=TRUE),
+            arr_time_sd = sd(arr_time,na.rm=TRUE))
+my_summary
+```
+
+To summarize, the summary function allows to personalized the summaries compared to the usual `summary` function of the `base` package which always provides the same summaries.
+
+The `summarise` fonction becomes more useful when you combine it with the `group_by` function. This allows to get summaries that are group dependent, and you specify the groups.
+
+```{r}
+my_groups = group_by(flights,month)
+summarise(my_groups,
+            dep_delay_m=mean(dep_delay,na.rm = TRUE),
+            arr_delay_m = mean(arr_delay,na.rm=TRUE),
+            arr_time_sd = sd(arr_time,na.rm=TRUE))
+```
+
+> Exercice #1: relationship between the delay and the distance, according to the months
+
+```{r}
+flights2 = mutate(flights,
+                  delay = dep_delay + arr_delay)
+my_groups = group_by(flights2,month)
+sum = summarise(my_groups,
+          tot_delay = sum(delay,na.rm = TRUE),
+          tot_distance = sum(distance,na.rm = TRUE),
+          nb_flights = n())
+sum = mutate(sum, norm_delay = tot_delay / nb_flights)
+sum
+```
+
+Here, we can finally conclude that there is a seasonal effect on the delay (probably due to the touristic period).
+
+```{r}
+library(ggplot2)
+ggplot(sum) + geom_line(aes(x = month,y = norm_delay))
+
+```
+
+```{r}
+library(ggplot2)
+ggplot(sum) + geom_point(aes(x = tot_distance,y = norm_delay),alpha=0.3)
+
+```
+
+> Exercice #2: count the number of flights per month and per destination
+
+```{r}
+my_groups = group_by(flights,month,dest)
+sum2 = summarise(my_groups,count = n())
+sum2
+```
+
+> Remark: the `n()` function counts how many observations are in the groups that are formed by the the `group_by` function 
 
 ## The pipe `%>%` operator
 
+The pipe operator is known in several languages, such as the `bash` language. It aims at providing the result of a first action to another action without needing to store the intermediate result(s). 
 
+Of course, since it is not possible to see the intermediate results, the pipe operator should be used with caution, on actions that are well understood.
+
+In `R`, the pipe operator is provided by the `magrittr` and the syntax is `%>%`. So now, we can reformulate the actions that we used before with the pipe:
+
+```{r}
+flights %>% mutate(delay = dep_delay + arr_delay) %>%
+  group_by(month) %>%
+  summarise(tot_delay = sum(delay,na.rm = TRUE),
+          tot_distance = sum(distance,na.rm = TRUE),
+          nb_flights = n()) %>%
+  mutate(norm_delay = tot_delay / nb_flights)
+```
+
+> Remark: in a chain of actions, the data are always grouped after the `group_by` function unless the `ungroup` function is called. After this call, the data set will recover is initial form.
 
 # Relational data, dates and maps
 
+## Relational data
 
+In most situations, the information is not stored in a single data frame, because the data are too complex and/or too large to be replicated in a single file. In such a case, we prefer usually to work with several data files that are connected through identification numbers (called primary keys).
+
+Those identifications are very important to keep as is in order to be able to connect the tables and also to produce results that are exploitables.
+
+To join two different tables, the `inner_join`, `left_join`, `right_join` and `full_join` allows to join tables with common identification ids.
+
+```{r}
+X = data.frame(id = c(1:5,5,7), x = runif(7), a = runif(7))
+Y = data.frame(id = 6:1, y = seq(-10,-5))
+X
+Y
+```
+
+
+```{r}
+Z = inner_join(X,Y,by = "id")
+Z
+```
+
+In case the two tables do not have the same name for the indification variable, you have to specify the two variables in the `by` parameter: `by = c('id1' = 'id2')`.
+
+```{r}
+full_join(X,Y,by = "id")
+```
+
+
+```{r}
+right_join(X,Y,by = "id")
+```
+
+
+```{r}
+left_join(X,Y,by = "id")
+```
+
+## Temporal data (dates)
+
+In R, temporal data have their own types to be recognized as dates. This allows in particular to manipulate those data as dates and not only continuous variables.
+
+A basic input for dates is as follows:
+
+```{r}
+today = '2018-11-22'
+some_other_day = '2018-11-12'
+today
+class(today)
+#today - some_other_day
+
+today = as.Date(today)
+some_other_day = as.Date(some_other_day)
+today
+class(today)
+
+today - some_other_day
+
+range(c(today,some_other_day))
+```
+
+When working with dates, it would be possible to see the temporal distribution of the flights over 2013:
+
+```{r}
+flights = mutate(flights,date=as.Date(paste(year,month,day,sep='-')))
+hist(flights$date,breaks = 'days')
+```
+
+```{r}
+dates = c(paste('2018:Jan-',1:31,sep=''),
+          paste('2018:Feb-',1:28,sep=''),
+          paste('2018:Mar-',1:30,sep=''))
+dates
+
+dates2 = as.Date(dates,format = "%Y:%B-%d")
+dates2
+```
+
+## Maps
+
+Actually, R is pretty good for displaying and manipulating maps. R is even recognized as a good software by geographers and they use it a lot to display information on very different maps.
+
+There a lot of packages dedicated to drawing maps: `maps`, `ggmap`, `leaflet`, ...
+
+The first 'historical' package is the `maps` one, which is provided by R core.
+
+```{r}
+library(maps)
+map()
+```
+
+Then, it is very easy to add information on this map by using `points()`, `lines()` or `text()` with the GPS positions of the elements that we would like to display.
+
+```{r}
+X = data.frame(lat = c(45, 46, 47), long = c(32,25,5))
+map()
+points(X$long,X$lat,pch=19,col='red',cex=1)
+```
+
+> Exercice: draw a map of all connections between NY airport and all airports of the world
+
+```{r}
+X = data.frame(faa2 = as.factor(unique(flights$dest)))
+airports = mutate(airports, faa2 = as.factor(faa))
+Y = left_join(X,airports,by = 'faa2')
+
+map(database = 'state')
+points(Y$lon,Y$lat,pch=19,col='red',cex=1)
+```
+
+The `ggmap` library allows to draw more fancy maps by relying on GoogleMaps, OpenStreetMap, ...
+
+```{r eval=FALSE}
+#install.packages('ggmap')
+library(ggmap)
+
+myMap = get_stamenmap()
+ggmap(myMap) + geom_point(Y,aes(x = lon,y = lat))
+```
+
+With `leaflet`, we can also get some nice maps:
+
+```{r}
+#install.packages('leaflet')
+library(leaflet)
+
+m <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+m  # Print the map
+```
